@@ -37,6 +37,8 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Profile")
     add_compile_options(-g -pg -Og)
 endif()
 
+add_subdirectory(extern/ncursespp)
+
 add_subdirectory(src)
 # add_subdirectory(tests)
 
