@@ -4,6 +4,15 @@
 #include <fstream>
 #include <iostream>
 
+Board::Board()
+	: boardView{ncurses::Rect{{}, {0, context.get_height() - 1}}}
+	, statusLine{ncurses::Rect{{0, context.get_height() - 1}, {}}}
+{
+	context.raw(true);
+	context.refresh();
+	repaint();
+}
+
 std::string getParagraph(std::ifstream& input)
 {
 	auto paragraph = std::string{};
@@ -102,4 +111,27 @@ void Board::dump() const
 			}
 		}
 	}
+}
+
+void Board::repaint()
+{
+	boardView.erase();
+	boardView.refresh();
+	statusLine.erase();
+	statusLine.refresh();
+}
+
+int Board::mainLoop()
+{
+	while (not doQuit)
+	{
+		ncurses::Key ch;
+		ch = statusLine.getch();
+		if (ch == ncurses::Key::Ctrl({'c'}))  // Ctrl+C
+		{
+			break;
+		}
+		repaint();
+	}
+	return 0;
 }

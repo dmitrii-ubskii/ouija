@@ -4,14 +4,29 @@
 #include <filesystem>
 #include <vector>
 
+#include "ncursespp/ncurses.h"
+#include "ncursespp/window.h"
+
 class Board
 {
 public:
-	void open(std::filesystem::path);
+	Board();
 
+	void open(std::filesystem::path);
 	void dump() const;
 
+	int mainLoop();
+
 private:
+	ncurses::Ncurses context{};
+
+	ncurses::Window boardView;
+	ncurses::Window statusLine;
+
+	void repaint();
+
+	bool doQuit{false};
+
 	struct Card
 	{
 		std::string title;
