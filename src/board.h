@@ -25,6 +25,8 @@ private:
 
 	void repaint();
 
+	void onResize();
+
 	bool doQuit{false};
 
 	struct Card

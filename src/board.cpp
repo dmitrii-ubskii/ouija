@@ -113,11 +113,25 @@ void Board::dump() const
 	}
 }
 
+void Board::onResize()
+{
+	auto termSize = context.get_size();
+	boardView.resize({termSize.w, std::max(1, termSize.h - 1)});
+	statusLine.resize({termSize.w, 1});
+	statusLine.moveTo({0, termSize.h - 1});
+}
+
 void Board::repaint()
 {
 	boardView.erase();
 	boardView.refresh();
 	statusLine.erase();
+	statusLine.mvaddstr(
+		{},
+		std::to_string(context.get_width()) + "x" + std::to_string(context.get_height()) + " | " +
+		std::to_string(boardView.get_width()) + "x" + std::to_string(boardView.get_height()) + " | " +
+		std::to_string(statusLine.get_width()) + "x" + std::to_string(statusLine.get_height())
+	);
 	statusLine.refresh();
 }
 
@@ -130,6 +144,10 @@ int Board::mainLoop()
 		if (ch == ncurses::Key::Ctrl({'c'}))  // Ctrl+C
 		{
 			break;
+		}
+		if (ch == ncurses::Key::Resize)
+		{
+			onResize();
 		}
 		repaint();
 	}
