@@ -118,7 +118,7 @@ void Board::onResize()
 	auto termSize = context.get_size();
 	boardView.resize({termSize.w, std::max(1, termSize.h - 1)});
 	statusLine.resize({termSize.w, 1});
-	statusLine.moveTo({0, termSize.h - 1});
+	statusLine.move_to({0, termSize.h - 1});
 }
 
 void Board::repaint()
