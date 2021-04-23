@@ -8,6 +8,7 @@ Board::Board()
 	: boardView{ncurses::Rect{{}, {0, context.get_height() - 1}}}
 	, statusLine{ncurses::Rect{{0, context.get_height() - 1}, {}}}
 {
+	listViews.push_back({boardView.get_rect()});
 	context.raw(true);
 	context.refresh();
 	repaint();
@@ -45,6 +46,7 @@ void Board::open(std::filesystem::path filePath)
 
 	auto expectList = true;
 
+	lists.clear();
 	while (true)
 	{
 		auto paragraph = getParagraph(fileHandler);
@@ -84,6 +86,17 @@ void Board::open(std::filesystem::path filePath)
 			}
 		}
 	}
+
+	listViews.clear();
+	auto listWidth = boardView.get_width() / static_cast<int>(lists.size());
+	auto x = 0;
+	for (auto i = 0ul; i < lists.size(); i++)
+	{
+		listViews.emplace_back(ncurses::Rect{{x, 0}, {listWidth, boardView.get_height()}});
+		listViews.back().set_color(ncurses::Color::LightCyan, ncurses::Color::Black);
+		x += listWidth;
+	}
+	repaint();
 }
 
 void Board::dump() const
@@ -119,12 +132,36 @@ void Board::onResize()
 	boardView.resize({termSize.w, std::max(1, termSize.h - 1)});
 	statusLine.resize({termSize.w, 1});
 	statusLine.move_to({0, termSize.h - 1});
+
+	auto listWidth = boardView.get_width() / static_cast<int>(lists.size());
+	auto x = 0;
+
+	for (auto& view: listViews)
+	{
+		view.resize({listWidth, boardView.get_height()});
+		view.move_to({x, 0});
+		x += listWidth;
+	}
 }
 
 void Board::repaint()
 {
 	boardView.erase();
 	boardView.refresh();
+	for (auto i = 0ul; i < lists.size(); i++)
+	{
+		auto& list = lists[i];
+		auto& view = listViews[i];
+		view.erase();
+		view.add_attributes({ncurses::Attribute::Reverse});
+		view.mvaddstr({}, list.title);
+		while (view.get_cursor().x > 0)
+		{
+			view.addstr(" ");
+		}
+		view.remove_attributes({ncurses::Attribute::Reverse});
+		view.refresh();
+	}
 	statusLine.erase();
 	statusLine.mvaddstr(
 		{},

@@ -40,7 +40,8 @@ private:
 		std::string title;
 		std::vector<Card> cards{};
 	};
-	std::vector<List> lists;
+	std::vector<List> lists{{"New list"}};
+	std::vector<ncurses::Window> listViews{};
 };
 
 #endif // SRC_BOARD_H_
