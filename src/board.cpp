@@ -8,7 +8,7 @@ Board::Board()
 	: boardView{ncurses::Rect{{}, {0, context.get_height() - 1}}}
 	, statusLine{ncurses::Rect{{0, context.get_height() - 1}, {}}}
 {
-	listViews.push_back({boardView.get_rect()});
+	listViews.push_back(ncurses::Window{boardView.get_rect()});
 	context.raw(true);
 	context.refresh();
 	repaint();
