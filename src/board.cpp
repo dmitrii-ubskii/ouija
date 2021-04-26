@@ -88,14 +88,12 @@ void Board::open(std::filesystem::path filePath)
 	}
 
 	listViews.clear();
-	auto listWidth = boardView.get_width() / static_cast<int>(lists.size());
-	auto x = 0;
 	for (auto i = 0ul; i < lists.size(); i++)
 	{
-		listViews.emplace_back(ncurses::Rect{{x, 0}, {listWidth, boardView.get_height()}});
+		listViews.emplace_back(ncurses::Rect{{0, 0}, {1, boardView.get_height()}});
 		listViews.back().set_color(ncurses::Color::LightCyan, ncurses::Color::Black);
-		x += listWidth;
 	}
+	resizeLists();
 	repaint();
 }
 
@@ -126,6 +124,20 @@ void Board::dump() const
 	}
 }
 
+void Board::resizeLists()
+{
+	auto numLists = static_cast<int>(lists.size());
+	auto listWidth = (boardView.get_width() - (numLists - 1)) / numLists;
+	auto x = 0;
+
+	for (auto& view: listViews)
+	{
+		view.resize({listWidth, boardView.get_height()});
+		view.move_to({x, 0});
+		x += listWidth + 1;
+	}
+}
+
 void Board::onResize()
 {
 	auto termSize = context.get_size();
@@ -133,15 +145,7 @@ void Board::onResize()
 	statusLine.resize({termSize.w, 1});
 	statusLine.move_to({0, termSize.h - 1});
 
-	auto listWidth = boardView.get_width() / static_cast<int>(lists.size());
-	auto x = 0;
-
-	for (auto& view: listViews)
-	{
-		view.resize({listWidth, boardView.get_height()});
-		view.move_to({x, 0});
-		x += listWidth;
-	}
+	resizeLists();
 }
 
 void Board::repaint()
@@ -154,12 +158,26 @@ void Board::repaint()
 		auto& view = listViews[i];
 		view.erase();
 		view.add_attributes({ncurses::Attribute::Reverse});
-		view.mvaddstr({}, list.title);
+		view.mvaddnstr({0, 0}, list.title, view.get_width());
 		while (view.get_cursor().x > 0)
 		{
 			view.addstr(" ");
 		}
+		if (list.title.length() > static_cast<std::size_t>(view.get_width()))
+		{
+			view.mvaddstr({view.get_width() - 1, 0}, ">");
+		}
 		view.remove_attributes({ncurses::Attribute::Reverse});
+		auto y = 1;
+		for (auto const& card: list.cards)
+		{
+			view.mvaddnstr({0, y}, card.title, view.get_width());
+			if (card.title.length() > static_cast<std::size_t>(view.get_width()))
+			{
+				view.mvaddstr({view.get_width() - 1, y}, ">");
+			}
+			y++;
+		}
 		view.refresh();
 	}
 	statusLine.erase();

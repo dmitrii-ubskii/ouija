@@ -25,6 +25,7 @@ private:
 
 	void repaint();
 
+	void resizeLists();
 	void onResize();
 
 	bool doQuit{false};
