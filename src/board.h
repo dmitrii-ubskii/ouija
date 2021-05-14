@@ -2,6 +2,7 @@
 #define SRC_BOARD_H_
 
 #include <filesystem>
+#include <string>
 #include <vector>
 
 #include "ncursespp/ncurses.h"
@@ -27,6 +28,8 @@ private:
 
 	void resizeLists();
 	void onResize();
+
+	void showMessage(std::string const&);
 
 	bool doQuit{false};
 

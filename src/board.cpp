@@ -190,6 +190,13 @@ void Board::repaint()
 	statusLine.refresh();
 }
 
+void Board::showMessage(std::string const& message)
+{
+	statusLine.erase();
+	statusLine.addstr(message);
+	statusLine.refresh();
+}
+
 int Board::mainLoop()
 {
 	while (not doQuit)
