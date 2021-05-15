@@ -8,7 +8,8 @@ Board::Board()
 	: boardView{ncurses::Rect{{}, {0, context.get_height() - 1}}}
 	, statusLine{ncurses::Rect{{0, context.get_height() - 1}, {}}}
 {
-	listViews.push_back(ncurses::Window{boardView.get_rect()});
+	lists.back().width = boardView.get_width();
+	boardView.set_color(ncurses::Color::LightCyan, ncurses::Color::Black);
 	context.raw(true);
 	context.refresh();
 	repaint();
@@ -87,12 +88,6 @@ void Board::open(std::filesystem::path filePath)
 		}
 	}
 
-	listViews.clear();
-	for (auto i = 0ul; i < lists.size(); i++)
-	{
-		listViews.emplace_back(ncurses::Rect{{0, 0}, {1, boardView.get_height()}});
-		listViews.back().set_color(ncurses::Color::LightCyan, ncurses::Color::Black);
-	}
 	resizeLists();
 	repaint();
 }
@@ -128,13 +123,10 @@ void Board::resizeLists()
 {
 	auto numLists = static_cast<int>(lists.size());
 	auto listWidth = (boardView.get_width() - (numLists - 1)) / numLists;
-	auto x = 0;
 
-	for (auto& view: listViews)
+	for (auto& list: lists)
 	{
-		view.resize({listWidth, boardView.get_height()});
-		view.move_to({x, 0});
-		x += listWidth + 1;
+		list.width = listWidth;
 	}
 }
 
@@ -151,39 +143,38 @@ void Board::onResize()
 void Board::repaint()
 {
 	boardView.erase();
-	boardView.refresh();
+	auto x = 0;
 	for (auto i = 0ul; i < lists.size(); i++)
 	{
 		auto& list = lists[i];
-		auto& view = listViews[i];
-		view.erase();
-		view.mvaddnstr({0, 0}, list.title, view.get_width());
-		if (list.title.length() > static_cast<std::size_t>(view.get_width()))
+		boardView.mvaddnstr({x, 0}, list.title, list.width);
+		if (list.title.length() > static_cast<std::size_t>(list.width))
 		{
-			view.mvaddstr({view.get_width() - 1, 0}, ">");
+			boardView.mvaddstr({x + list.width - 1, 0}, ">");
 		}
-		view.set_attributes_in_rect({ncurses::Attribute::Reverse}, {{0, 0}, {view.get_width(), 1}});
+		boardView.set_attributes_in_rect({ncurses::Attribute::Reverse}, {{x, 0}, {list.width, 1}});
 
 		auto y = 1;
 		for (auto const& card: list.cards)
 		{
-			view.mvaddnstr({0, y}, card.title, view.get_width());
-			if (card.title.length() > static_cast<std::size_t>(view.get_width()))
+			boardView.mvaddnstr({x, y}, card.title, list.width);
+			if (card.title.length() > static_cast<std::size_t>(list.width))
 			{
-				view.mvaddstr({view.get_width() - 1, y}, ">");
+				boardView.mvaddstr({x + list.width - 1, y}, ">");
 			}
 			y++;
 		}
 
 		if (i == cursorPosition.list)
 		{
-			view.set_attributes_in_rect(
+			boardView.set_attributes_in_rect(
 				{ncurses::Attribute::Reverse},
-				{{0, static_cast<int>(cursorPosition.card) + 1}, {view.get_width(), 1}}
+				{{x, static_cast<int>(cursorPosition.card) + 1}, {list.width, 1}}
 			);
 		}
-		view.refresh();
+		x += list.width + 1;
 	}
+	boardView.refresh();
 
 	statusLine.erase();
 	statusLine.addstr(

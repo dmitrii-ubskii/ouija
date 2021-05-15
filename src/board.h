@@ -49,9 +49,9 @@ private:
 	{
 		std::string title;
 		std::vector<Card> cards{};
+		int width{0};
 	};
 	std::vector<List> lists{{"New list"}};
-	std::vector<ncurses::Window> listViews{};
 };
 
 #endif // SRC_BOARD_H_
