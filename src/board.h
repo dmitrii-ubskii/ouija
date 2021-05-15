@@ -37,7 +37,7 @@ private:
 	{
 		std::size_t list;
 		std::size_t card;
-	} cursorPosition {0, 0};
+	} cursorPosition{0, 0};
 
 	struct Card
 	{
