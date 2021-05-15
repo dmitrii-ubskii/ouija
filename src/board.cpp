@@ -174,14 +174,20 @@ void Board::repaint()
 			}
 			y++;
 		}
+
+		if (i == cursorPosition.list)
+		{
+			view.set_attributes_in_rect(
+				{ncurses::Attribute::Reverse},
+				{{0, static_cast<int>(cursorPosition.card) + 1}, {view.get_width(), 1}}
+			);
+		}
 		view.refresh();
 	}
+
 	statusLine.erase();
-	statusLine.mvaddstr(
-		{},
-		std::to_string(context.get_width()) + "x" + std::to_string(context.get_height()) + " | " +
-		std::to_string(boardView.get_width()) + "x" + std::to_string(boardView.get_height()) + " | " +
-		std::to_string(statusLine.get_width()) + "x" + std::to_string(statusLine.get_height())
+	statusLine.addstr(
+		std::to_string(cursorPosition.list) + ", " + std::to_string(cursorPosition.card)
 	);
 	statusLine.refresh();
 }
@@ -203,6 +209,52 @@ int Board::mainLoop()
 		{
 			break;
 		}
+
+		if (ch == 'h')
+		{
+			if (cursorPosition.list > 0)
+			{
+				cursorPosition.list--;
+				if (lists[cursorPosition.list].cards.size() == 0)
+				{
+					cursorPosition.card = 0;
+				}
+				else
+				{
+					cursorPosition.card = std::min(cursorPosition.card, lists[cursorPosition.list].cards.size() - 1);
+				}
+			}
+		}
+		if (ch == 'l')
+		{
+			if (cursorPosition.list + 1 < lists.size())
+			{
+				cursorPosition.list++;
+				if (lists[cursorPosition.list].cards.size() == 0)
+				{
+					cursorPosition.card = 0;
+				}
+				else
+				{
+					cursorPosition.card = std::min(cursorPosition.card, lists[cursorPosition.list].cards.size() - 1);
+				}
+			}
+		}
+		if (ch == 'j')
+		{
+			if (cursorPosition.card + 1 < lists[cursorPosition.list].cards.size())
+			{
+				cursorPosition.card++;
+			}
+		}
+		if (ch == 'k')
+		{
+			if (cursorPosition.card > 0)
+			{
+				cursorPosition.card--;
+			}
+		}
+
 		if (ch == ncurses::Key::Resize)
 		{
 			onResize();
