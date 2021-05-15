@@ -157,17 +157,13 @@ void Board::repaint()
 		auto& list = lists[i];
 		auto& view = listViews[i];
 		view.erase();
-		view.add_attributes({ncurses::Attribute::Reverse});
 		view.mvaddnstr({0, 0}, list.title, view.get_width());
-		while (view.get_cursor().x > 0)
-		{
-			view.addstr(" ");
-		}
 		if (list.title.length() > static_cast<std::size_t>(view.get_width()))
 		{
 			view.mvaddstr({view.get_width() - 1, 0}, ">");
 		}
-		view.remove_attributes({ncurses::Attribute::Reverse});
+		view.set_attributes_in_rect({ncurses::Attribute::Reverse}, {{0, 0}, {view.get_width(), 1}});
+
 		auto y = 1;
 		for (auto const& card: list.cards)
 		{
