@@ -4,12 +4,15 @@
 #include <fstream>
 #include <iostream>
 
+#include "ncursespp/color.h"
+
 Board::Board()
 	: boardView{ncurses::Rect{{}, {0, context.get_height() - 1}}}
 	, statusLine{ncurses::Rect{{0, context.get_height() - 1}, {}}}
 {
 	lists.back().width = boardView.get_width();
-	boardView.set_color(ncurses::Color::LightCyan, ncurses::Color::Black);
+	context.register_palette(ncurses::Palette{1}, ncurses::Color::LightCyan, ncurses::Color::Black);
+	boardView.set_palette(ncurses::Palette{1});
 	context.raw(true);
 	context.refresh();
 	repaint();
