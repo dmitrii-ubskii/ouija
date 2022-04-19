@@ -6,6 +6,8 @@
 
 #include "ncursespp/color.h"
 
+#include "ops.h"
+
 Board::Board()
 	: boardView{ncurses::Rect{{}, {0, context.get_height() - 1}}}
 	, statusLine{ncurses::Rect{{0, context.get_height() - 1}, {}}}
@@ -178,12 +180,6 @@ void Board::repaint()
 		x += list.width + 1;
 	}
 	boardView.refresh();
-
-	statusLine.erase();
-	statusLine.addstr(
-		std::to_string(cursorPosition.list) + ", " + std::to_string(cursorPosition.card)
-	);
-	statusLine.refresh();
 }
 
 void Board::showMessage(std::string const& message)
@@ -191,6 +187,20 @@ void Board::showMessage(std::string const& message)
 	statusLine.erase();
 	statusLine.addstr(message);
 	statusLine.refresh();
+}
+
+void Board::handleKey(ncurses::Key key)
+{
+	if (normalOps.contains(key))
+	{
+		auto result = normalOps.at(key)({
+			key, cursorPosition, lists
+		});
+		if (result.cursorMoved)
+		{
+			cursorPosition = result.cursorPosition;
+		}
+	}
 }
 
 int Board::mainLoop()
@@ -204,55 +214,15 @@ int Board::mainLoop()
 			break;
 		}
 
-		if (ch == 'h')
-		{
-			if (cursorPosition.list > 0)
-			{
-				cursorPosition.list--;
-				if (lists[cursorPosition.list].cards.size() == 0)
-				{
-					cursorPosition.card = 0;
-				}
-				else
-				{
-					cursorPosition.card = std::min(cursorPosition.card, lists[cursorPosition.list].cards.size() - 1);
-				}
-			}
-		}
-		if (ch == 'l')
-		{
-			if (cursorPosition.list + 1 < lists.size())
-			{
-				cursorPosition.list++;
-				if (lists[cursorPosition.list].cards.size() == 0)
-				{
-					cursorPosition.card = 0;
-				}
-				else
-				{
-					cursorPosition.card = std::min(cursorPosition.card, lists[cursorPosition.list].cards.size() - 1);
-				}
-			}
-		}
-		if (ch == 'j')
-		{
-			if (cursorPosition.card + 1 < lists[cursorPosition.list].cards.size())
-			{
-				cursorPosition.card++;
-			}
-		}
-		if (ch == 'k')
-		{
-			if (cursorPosition.card > 0)
-			{
-				cursorPosition.card--;
-			}
-		}
-
 		if (ch == ncurses::Key::Resize)
 		{
 			onResize();
 		}
+		else
+		{
+			handleKey(ch);
+		}
+
 		repaint();
 	}
 	return 0;

@@ -1,6 +1,7 @@
 add_executable(ouija
     main.cpp
     board.cpp
+    ops.cpp
 )
 
 target_compile_features(ouija PRIVATE cxx_std_20)
